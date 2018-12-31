@@ -18,9 +18,16 @@ QMetaObject *metaObjectFor(const QSharedPointer<NetTypeInfo>& typeInfo)
     typeInfo->ensureLoaded();
 
     QMetaObjectBuilder mob;
-    mob.setSuperClass(&QObject::staticMetaObject);
     mob.setClassName(typeInfo->getClassName().toLatin1());
     mob.setFlags(QMetaObjectBuilder::DynamicMetaObject);
+
+    QString baseType = typeInfo->getBaseType();
+    if(baseType.isNull() || baseType.isEmpty()) {
+        mob.setSuperClass(&QObject::staticMetaObject);
+    } else {
+        auto baseTypeInfo = NetTypeManager::getTypeInfo(baseType);
+        mob.setSuperClass(metaObjectFor(baseTypeInfo));
+    }
 
     // register all the signals for the type
     for(int index = 0; index <= typeInfo->getSignalCount() - 1; index++)
