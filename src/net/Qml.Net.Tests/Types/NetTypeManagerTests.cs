@@ -421,5 +421,56 @@ namespace Qml.Net.Tests.Types
             indexParameters[0].Name.Should().Be("index");
             indexParameters[0].Type.FullTypeName.Should().Be(typeof(int).AssemblyQualifiedName);
         }
+
+        public class TestType17
+        {
+            public void Method1()
+            {
+            }
+        }
+
+        public class TestType18 : TestType17
+        {
+            public void Method2()
+            {
+            }
+        }
+        
+        [Fact]
+        public void Only_methods_on_class_are_returned()
+        {
+            var type1 = NetTypeManager.GetTypeInfo<TestType17>();
+            type1.EnsureLoaded();
+            type1.MethodCount.Should().Be(1);
+            type1.GetMethod(0).MethodName.Should().Be("Method1");
+
+            var type2 = NetTypeManager.GetTypeInfo<TestType18>();
+            type2.EnsureLoaded();
+            type2.MethodCount.Should().Be(1);
+            type2.GetMethod(0).MethodName.Should().Be("Method2");
+        }
+
+        [Signal("firstSignal")]
+        public class TestType19
+        {
+        }
+
+        [Signal("secondSignal")]
+        public class TestType20 : TestType19
+        {
+        }
+
+        [Fact]
+        public void Can_ignore_inherited_signals()
+        {
+            var type1 = NetTypeManager.GetTypeInfo<TestType19>();
+            type1.EnsureLoaded();
+            type1.SignalCount.Should().Be(1);
+            type1.GetSignal(0).Name.Should().Be("firstSignal");
+            var type2 = NetTypeManager.GetTypeInfo<TestType20>();
+            type2.EnsureLoaded();
+            type2.SignalCount.Should().Be(1);
+            type2.GetSignal(0).Name.Should().Be("secondSignal");
+        }
     }
 }

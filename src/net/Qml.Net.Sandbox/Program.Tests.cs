@@ -44,6 +44,7 @@ namespace Qml.Net.Sandbox
                     DiscoveryComplete.Set();
                     break;
                 case ITestCaseDiscoveryMessage testCaseDiscoveryMessage:
+                    if(testCaseDiscoveryMessage.TestCase.DisplayName.Contains("Can_raise_base_signal_from_qml_on_base_object_from_derived_object"))
                     TestCases.Add(testCaseDiscoveryMessage.TestCase);
                     break;
             }

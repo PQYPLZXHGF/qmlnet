@@ -16,6 +16,8 @@ namespace Qml.Net.Internal
 
         static Interop()
         {
+            Environment.SetEnvironmentVariable("LD_LIBRARY_PATH", "/home/pknopf/git/qmlnet/src/native/build-QmlNet-Desktop_Qt_5_10_1_GCC_64bit-Debug");
+            
             string pluginsDirectory = null;
             string qmlDirectory = null;
             string libDirectory = null;

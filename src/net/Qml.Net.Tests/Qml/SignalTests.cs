@@ -91,6 +91,11 @@ namespace Qml.Net.Tests.Qml
         {
         }
 
+        [Signal("derivedSignal")]
+        public class SignalObjectDerived : SignalObject
+        {
+        }
+
         [Fact]
         public void Can_raise_signal_from_qml()
         {
@@ -371,6 +376,104 @@ namespace Qml.Net.Tests.Qml
 
             paramResult.Should().NotBeNull();
             paramResult.SomeStringProperty.Should().NotBeNull(param.SomeStringProperty);
+        }
+
+        [Fact]
+        public void Can_raise_base_signal_from_net_on_base_object_from_derived_object()
+        {
+            var o = new SignalObjectDerived();
+            Mock.Setup(x => x.SignalRaised).Returns(false);
+            Mock.Setup(x => x.GetSignalObject()).Returns(o);
+            Mock.Setup(x => x.TestMethod()).Callback(() =>
+            {
+                o.ActivateSignal("testSignal");
+            });
+            
+            RunQmlTest(
+                "test",
+                @"
+                    var instance = test.getSignalObject()
+                    instance.testSignal.connect(function() {
+                        test.signalRaised = true
+                    })
+                    test.testMethod()
+                ");
+            Mock.VerifySet(x => x.SignalRaised = true, Times.Once);
+        }
+        
+        [Fact]
+        public void Can_raise_derived_signal_from_net_on_base_object_from_derived_object()
+        {
+            var o = new SignalObjectDerived();
+            Mock.Setup(x => x.SignalRaised).Returns(false);
+            Mock.Setup(x => x.GetSignalObject()).Returns(o);
+            Mock.Setup(x => x.TestMethod()).Callback(() =>
+            {
+                o.ActivateSignal("derivedSignal");
+            });
+            
+            RunQmlTest(
+                "test",
+                @"
+                    var instance = test.getSignalObject()
+                    instance.derivedSignal.connect(function() {
+                        test.signalRaised = true
+                    })
+                    test.testMethod()
+                ");
+            Mock.VerifySet(x => x.SignalRaised = true, Times.Once);
+        }
+        
+        [Fact]
+        public void Can_raise_base_signal_from_qml_on_base_object_from_derived_object()
+        {
+            var o = new SignalObjectDerived();
+            Mock.Setup(x => x.GetSignalObject()).Returns(o);
+            Mock.Setup(x => x.TestMethod());
+            o.AttachToSignal("testSignal", new Action(() =>
+            {
+                Console.WriteLine("TTTTT");
+                Mock.Object.TestMethod();
+            }));
+            
+            RunQmlTest(
+                "test",
+                @"
+                    var instance = test.getSignalObject()
+                    instance.testSignal.connect(function() {
+                        console.log('test signal raised')
+                    })
+                    instance.derivedSignal.connect(function() {
+                        console.log('derived signal raised')
+                    })
+                    console.log('raising signal')
+                    instance.testSignal()
+                    console.log('raised signal')
+                ");
+            Mock.Verify(x => x.TestMethod(), Times.Once);
+        }
+        
+        [Fact]
+        public void Can_raise_derived_signal_from_qml_on_base_object_from_derived_object()
+        {
+            var o = new SignalObjectDerived();
+            Mock.Setup(x => x.SignalRaised).Returns(false);
+            Mock.Setup(x => x.GetSignalObject()).Returns(o);
+            Mock.Setup(x => x.TestMethod()).Callback(() =>
+            {
+                o.ActivateSignal("derivedSignal");
+            });
+            
+            RunQmlTest(
+                "test",
+                @"
+                    var instance = test.getSignalObject()
+                    instance.derivedSignal.connect(function() {
+                        test.signalRaised = true
+                    })
+                    test.testMethod()
+                ");
+            Mock.VerifySet(x => x.SignalRaised = true, Times.Once);
         }
     }
 }
